@@ -1,5 +1,7 @@
 package com.teamtreehouse.albumcover;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
@@ -8,6 +10,10 @@ import android.os.Bundle;
 import android.support.v7.graphics.Palette;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewPropertyAnimator;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
@@ -35,10 +41,33 @@ public class AlbumDetailActivity extends Activity {
     }
 
     private void animate() {
+        // Scales the play/pause button from a dot to its normal size
+        ObjectAnimator scaleX = ObjectAnimator.ofFloat(fab, "scaleX", 0, 1);
+        ObjectAnimator scaleY = ObjectAnimator.ofFloat(fab, "scaleY", 0, 1);
+        AnimatorSet scaleFab = new AnimatorSet();
+        scaleFab.playTogether(scaleX, scaleY);
+
+        // Slides the titlePanel from the top
+        int titleStartValue = titlePanel.getTop();
+        int titleEndValue = titlePanel.getBottom();
+        ObjectAnimator animatorTitle = ObjectAnimator.ofInt(titlePanel, "bottom", titleStartValue, titleEndValue);
+        animatorTitle.setInterpolator(new AccelerateInterpolator());
+
+        // Slides the trackPanel also from the top
+        int trackStartValue = trackPanel.getTop();
+        int trackEndValue = trackPanel.getBottom();
+        ObjectAnimator animatorTrack = ObjectAnimator.ofInt(trackPanel, "bottom", trackStartValue, trackEndValue);
+        animatorTrack.setInterpolator(new DecelerateInterpolator());
+
+        titlePanel.setBottom(titleStartValue);
+        trackPanel.setBottom(trackStartValue);
         fab.setScaleX(0);
         fab.setScaleY(0);
 
-        fab.animate().scaleX(1).scaleY(1).start();
+        // Uses an AnimatorSet to play in the desired order
+        AnimatorSet set = new AnimatorSet();
+        set.playSequentially(animatorTitle, animatorTrack, scaleFab);
+        set.start();
     }
 
     @OnClick(R.id.album_art)
